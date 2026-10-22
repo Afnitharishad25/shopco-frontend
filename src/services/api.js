@@ -1,7 +1,12 @@
+
 import axios from "axios";
 
+const baseURL =
+  import.meta.env.VITE_API_URL ||
+  "http://127.0.0.1:8000/api";
+
 const api = axios.create({
-  baseURL: "http://127.0.0.1:8000/api",
+  baseURL,
 });
 
 api.interceptors.request.use((config) => {
@@ -22,6 +27,7 @@ api.interceptors.response.use(
 
     if (
       error.response?.status === 401 &&
+      originalRequest &&
       !originalRequest._retry
     ) {
       originalRequest._retry = true;
@@ -34,7 +40,7 @@ api.interceptors.response.use(
 
       try {
         const response = await axios.post(
-          "http://127.0.0.1:8000/api/token/refresh/",
+          `${baseURL}/token/refresh/`,
           {
             refresh: refreshToken,
           }
@@ -48,7 +54,6 @@ api.interceptors.response.use(
           `Bearer ${newAccessToken}`;
 
         return api(originalRequest);
-
       } catch (refreshError) {
         localStorage.removeItem("access");
         localStorage.removeItem("refresh");
